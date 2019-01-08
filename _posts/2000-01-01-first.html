@@ -1,0 +1,141 @@
+---
+layout: post
+---
+
+<p>
+	inspired by and translated from <a href="https://medium.com/@hiromi_suenaga/deep-learning-2-part-1-lesson-1-602f73869197" target="_blank">hiromi's personal note on practical deep learning for coders part 1 - lesson 1</a>
+</p>
+<h1>
+	<a href="http://forums.fast.ai/t/wiki-lesson-1/9398/1" target="_blank">lesson 1</a>	
+</h1>
+<h2>
+	시작하기 [<a href="https://youtu.be/IPBSB1HLNLo" target="_blank">0:00</a>]
+</h2>
+<li>
+	neural network 를 train 하기 위해서는 gpu 가 필수 입니다. 정확히 말해 cuda 라는 deep learning framework 를 지원하는 nvidia gpu 가 필요합니다.
+</li>
+<li>
+	GPU 를 대여하는 방법에는 여러가지가 있습니다. crestle [<a href="https://youtu.be/IPBSB1HLNLo?t=4m6s" target="_blank">04:06</a>], paperspace [<a href="https://youtu.be/IPBSB1HLNLo?t=6m10s" target="_blank">06:10</a>]
+</li>
+<h2>
+	<a href="https://github.com/fastai/fastai/blob/master/courses/dl1/lesson1.ipynb" target="_blank">jupyter notebook 과 dogs vs. cats 소개</a> [<a href="https://youtu.be/IPBSB1HLNLo?t=12m39s" target="_blank">12:39</a>]
+</h2>
+<li>
+	특정 cell 을 돌리기 위해서는 그 cell 을 고른 후 <span class="courier gray_background">shift+enter</span> 를 눌러주면 됩니다 (<span class="courier gray_background">shift</span> 를 누른 채로 <span class="courier">enter</span> 를 여러번 누르면 다음 cell 들을 돌립니다). 또는 위에 있는 run 버튼을 누르는 방법도 있습니다. cell 은 코드, 텍스트, 사진, 비디오 등을 포함 할수 있습니다
+</li>
+<li>
+	fast.ai 는 python 3 가 필요 합니다.
+</li>
+<p class="bg-gray-code">
+	<span class="purple bold">%</span>reload_ext autoreload <br>
+	<span class="purple bold">%</span>autoreload <span class="green">2</span> <br>
+	<span class="purple bold">%</span>matplotlib inline <br>
+	<span class="teal italic"># This file contains all the main external libs we'll use</span><br>
+	<span class="green bold">from</span> fastai.imports <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.transforms <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.conv_learner <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.model <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.dataset <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.sgdr <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	<span class="green bold">from</span> fastai.plots <span class="green bold">import</span> <span class="purple bold">*</span> <br>
+	PATH <span class="purple bold">=</span> <span class="red">"data/dogscats/"</span> <br>
+	sz <span class="purple bold">=</span> <span class="green">224</span> <br>
+</p>
+<h2>
+	사진들 살펴 보기 [<a href="https://youtu.be/IPBSB1HLNLo?t=15m40s" target="_blank">15:39</a>]
+</h2>
+<p class="bg-gray-code">
+	<span class="purple bold">!</span>ls {PATH}
+</p>
+<p class="bg-linen-code">
+	models	sample	test1  tmp  train  valid
+</p>
+<li>
+	<span class="courier gray_background">!</span> 는 python 이 아닌 bash (shell) 을 사용 하라는 명령입니다.
+</li>
+<li>
+	만약 training set 과 validation set 에 대하여 알지 못하면 practical machine learning class 나 <a href="http://www.fast.ai/2017/11/13/validation-sets/" target="_blank">rachel 의 블로그</a>를 확인 하세요.
+</li>
+<p class="bg-gray-code">
+	<span class="purple bold">!</span>ls {PATH}valid
+</p>
+<p class="bg-linen-code">
+	cats  dogs
+</p>
+<p class="bg-gray-code">
+	files <span class="purple bold">=</span> <span class="purple bold">!</span>ls {PATH}valid<span class="purple bold">/</span>cats <span class="purple bold">|</span> head<br>
+	files
+</p>
+<p class="bg-linen-code">
+	['cat.10016.jpg',<br>
+ 	'cat.1001.jpg',<br>
+ 	'cat.10026.jpg',<br>
+ 	'cat.10048.jpg',<br>
+ 	'cat.10050.jpg',<br>
+ 	'cat.10064.jpg',<br>
+	'cat.10071.jpg',<br>
+	'cat.10091.jpg',<br>
+	'cat.10103.jpg',<br>
+	'cat.10104.jpg']
+</p>
+<li>
+	이러한 폴더 형식이 image classification dataset 이 공유되고 제공되는 가장 기본적인 구조 입니다. 각 폴더가 label 을 알려줍니다 (예를 들면 <span class="gray_background">dogs</span> 나 <span class="gray_background">cats</span>)
+</li>
+<p class="bg-gray-code">
+	img <span class="purple bold">=</span> plt.imread(<span class="red">f'</span>{PATH}<span class="red">valid/cats/</span>{files[<span class="green">0</span>]}<span class="red">'</span>) <br>
+	plt.imshow(img); <br>
+</p>
+<p class="bg-linen-code">
+	<img style="width:400px" src="/assets/img/pdc/lesson1/cat.png">
+</p>
+<li>
+	<span class="bg-gray-text">f'{PATH}valid/cats/{files[0]}'</span> 은 python 3.6 식 string formatting 입니다.
+</li>
+<p class="bg-gray-code">
+	img.shape
+</p>
+<p class="bg-linen-code">
+	(198, 179, 3)
+</p>
+<p class="bg-gray-code">
+	img[:<span class="green">4</span>, :<span class="green">4</span>]
+</p>
+<p class="bg-linen-code">
+	array([[[ 29,  20,  23],<br>
+    [ 31,  22,  25],<br>
+    [ 34,  25,  28],<br>
+    [ 37,  28,  31]],<br><br>
+	[[ 60,  51,  54],<br>
+    [ 58,  49,  52],<br>
+    [ 56,  47,  50],<br>
+    [ 55,  46,  49]],<br><br>
+	[[ 93,  84,  87],<br>
+    [ 89,  80,  83],<br>
+    [ 85,  76,  79],<br>
+    [ 81,  72,  75]],<br><br>
+	[[104,  95,  98],<br>
+    [103,  94,  97],<br>
+    [102,  93,  96],<br>
+    [102,  93,  96]]], dtype=uint8)
+</p>
+<li>
+	<span class="bg-gray-text">img</span> 는 3 차원 array 입니다 (또는 랭크 3 tensor).
+</li>
+<li>
+	3 개의 값들 (예, <span class="bg-gray-text">[29, 20, 23]</span>) 은 0 과 255 사이의 R, G, B pixel 값들 입니다.
+</li>
+<li>
+	우리의 목표는 수많은 cat 과 dog 사진들을 학습하여 이러한 숫자들을 기반으로 사진속에 cat 이나 dog 가 있는지 예상하는 것입니다.
+</li>
+<li>
+	이 dataset 은 <a href="https://www.kaggle.com/c/dogs-vs-cats" target="_blank">kaggle competition</a> dataset 이며 공개 당시 (2013 년) 80% accuracy 를 state-of-the-art 라 했습니다.
+</li>
+<h2>model 학습 하기 [<a href="https://youtu.be/IPBSB1HLNLo?t=20m21s" target="_blank">20:21</a>]</h2>
+<p>
+	아래 3 줄의 code 들을 사용하여 model 을 train 하겠습니다.
+</p>
+<p class="bg-gray-code">
+	data <span class="purple bold">=</span> ImageClassifierData.from_paths(PATH, tfms<span class="purple bold">=</span>tfms_from_model(resnet34, sz)) <br>
+	learn <span class="purple bold">=</span> ConvLearner.pretrained(resnet34, data, precompute<span class="purple bold">=</span><span class="green bold">True</span>) <br>
+	learn.fit(<span class="green">0.01</span>, <span class="green">3</span>) <br>
+</p>
